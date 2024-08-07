@@ -5,7 +5,7 @@
   "description": "A serverless function to generate Open Graph images using Puppeteer.",
   "main": "api/generate-og-image.js",
   "scripts": {
-    "start": "node api/server.js"
+    "start": "node server.js"
   },
   "dependencies": {
     "cors": "^2.8.5",
