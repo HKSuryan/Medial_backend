@@ -19,7 +19,7 @@ app.post('/generate-og-image', upload.single('image'), async (req, res) => {
   const imageBuffer = req.file ? req.file.buffer : null;
 
   try {
-    const browser = await puppeteer.launch({ headless: true });
+    const browser = await puppeteer.launch({ headless: 'new' });
     const page = await browser.newPage();
     await page.setViewport({ width: 1200, height: 630 });
 
@@ -141,22 +141,22 @@ app.post('/generate-og-image', upload.single('image'), async (req, res) => {
   </div>
 </body>
 </html>
-       `);
-       const buffer = await page.screenshot({ type: 'jpeg' });
+    `);
+    const buffer = await page.screenshot({ type: 'jpeg' });
 
-       await browser.close();
-    
-       res.setHeader('Content-Type', 'image/jpeg');
-       res.setHeader('Access-Control-Allow-Origin', '*');
-       res.setHeader('Access-Control-Allow-Methods', 'GET,POST,OPTIONS');
-       res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
-       res.send(buffer);
-     } catch (error) {
-       console.error(error);
-       res.status(500).json({ error: 'Error generating image' });
-     }
-    });    
+    await browser.close();
 
-    app.listen(port, () => {
-      console.log(`Server is running on http://localhost:${port}`);
-      });
+    res.setHeader('Content-Type', 'image/jpeg');
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'GET,POST,OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+    res.send(buffer);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Error generating image' });
+  }
+});
+
+app.listen(port, () => {
+  console.log(`Server is running on http://localhost:${port}`);
+});
