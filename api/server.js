@@ -10,9 +10,17 @@ const port = process.env.PORT || 3001;
 
 // Configure multer for file uploads
 const upload = multer({ dest: path.join(__dirname, 'uploads') });
+const express = require("express");
+const cors = require("cors");
+
+const corsOptions = {
+  origin: "http://127.0.0.1:3000",
+};
+
+app.use(cors(corsOptions));
 
 // Middlewares
-app.use(cors());
+
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.json());
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
