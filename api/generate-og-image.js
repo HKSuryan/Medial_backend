@@ -25,7 +25,7 @@ app.post('/api/generate-og-image', (req, res) => {
     }
 
     const { title, content } = fields;
-    const imageUrl = files.image ? `http://localhost:3001/uploads/${files.image.newFilename}` : null;
+    const imageUrl = files.image ? `http://medial-backend.vercel.app/uploads/${files.image.newFilename}` : null;
 
     const browser = await puppeteer.launch();
     const page = await browser.newPage();
