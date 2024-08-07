@@ -1,9 +1,9 @@
 const express = require('express');
-const puppeteer = require('puppeteer');
-const path = require('path');
+const puppeteer = require('puppeteer-core');
+const { Readable } = require('stream');
 const cors = require('cors');
 const multer = require('multer');
-const { Readable } = require('stream');
+const chromium = require('@sparticuz/chromium');
 
 const app = express();
 const port = process.env.PORT || 3001;
@@ -13,9 +13,6 @@ const storage = multer.memoryStorage();
 const upload = multer({ storage });
 
 app.use(cors());
-
-// Middlewares
-app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.json());
 
 // Route for generating Open Graph images
@@ -24,7 +21,12 @@ app.post('/generate-og-image', upload.single('image'), async (req, res) => {
   const imageBuffer = req.file ? req.file.buffer : null;
 
   try {
-    const browser = await puppeteer.launch();
+    const browser = await puppeteer.launch({
+      args: chromium.args,
+      executablePath: await chromium.executablePath(),
+      headless: true,
+    });
+
     const page = await browser.newPage();
     await page.setViewport({ width: 1200, height: 630 });
 
