@@ -1,6 +1,5 @@
 const express = require('express');
 const puppeteer = require('puppeteer-core');
-const { Readable } = require('stream');
 const cors = require('cors');
 const multer = require('multer');
 const chromium = require('@sparticuz/chromium');
@@ -30,7 +29,11 @@ app.post('/generate-og-image', upload.single('image'), async (req, res) => {
     const page = await browser.newPage();
     await page.setViewport({ width: 1200, height: 630 });
 
-    await page.setContent(`
+    // Convert the image buffer to a Base64 string
+    const imageBase64 = imageBuffer ? imageBuffer.toString('base64') : '';
+
+    // Construct the HTML content
+    const htmlContent = `
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -137,7 +140,7 @@ app.post('/generate-og-image', upload.single('image'), async (req, res) => {
       <div class="description">${content}</div>
     </div>
     <div class="image-side">
-      ${imageBuffer ? `<img src="data:image/jpeg;base64,${imageBuffer.toString('base64')}" class="image" alt="Image"/>` : ''}
+      ${imageBuffer ? `<img src="data:image/jpeg;base64,${imageBase64}" class="image" alt="Image"/>` : 'No image available'}
     </div>
     <div class="background-shapes">
       <div class="background-shape shape-1"></div>
@@ -146,7 +149,9 @@ app.post('/generate-og-image', upload.single('image'), async (req, res) => {
   </div>
 </body>
 </html>
-    `);
+    `;
+
+    await page.setContent(htmlContent);
 
     const buffer = await page.screenshot({ type: 'jpeg' });
 
@@ -158,7 +163,7 @@ app.post('/generate-og-image', upload.single('image'), async (req, res) => {
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
     res.send(buffer);
   } catch (error) {
-    console.error(error);
+    console.error('Error generating image:', error);
     res.status(500).json({ error: 'Error generating image' });
   }
 });
