@@ -1,7 +1,7 @@
 const express = require('express');
 const puppeteer = require('puppeteer');
-const multer = require('multer');
 const cors = require('cors');
+const multer = require('multer');
 
 const app = express();
 const port = process.env.PORT || 3001;
@@ -19,11 +19,13 @@ app.post('/generate-og-image', upload.single('image'), async (req, res) => {
   const imageBuffer = req.file ? req.file.buffer : null;
 
   try {
-    const browser = await puppeteer.launch({ headless: 'new' });
+    const browser = await puppeteer.launch({
+      args: ['--no-sandbox', '--disable-setuid-sandbox'],
+      headless: 'new' // Ensure compatibility with the latest Puppeteer version
+    });
+
     const page = await browser.newPage();
     await page.setViewport({ width: 1200, height: 630 });
-
-    const imageData = imageBuffer ? `data:image/jpeg;base64,${imageBuffer.toString('base64')}` : '';
 
     await page.setContent(`
 <!DOCTYPE html>
@@ -132,7 +134,7 @@ app.post('/generate-og-image', upload.single('image'), async (req, res) => {
       <div class="description">${content}</div>
     </div>
     <div class="image-side">
-      ${imageData ? `<img src="${imageData}" class="image" alt="Image"/>` : ''}
+      ${imageBuffer ? `<img src="data:image/jpeg;base64,${imageBuffer.toString('base64')}" class="image" alt="Image"/>` : ''}
     </div>
     <div class="background-shapes">
       <div class="background-shape shape-1"></div>
@@ -142,6 +144,7 @@ app.post('/generate-og-image', upload.single('image'), async (req, res) => {
 </body>
 </html>
     `);
+
     const buffer = await page.screenshot({ type: 'jpeg' });
 
     await browser.close();
@@ -157,6 +160,7 @@ app.post('/generate-og-image', upload.single('image'), async (req, res) => {
   }
 });
 
+// Start server
 app.listen(port, () => {
   console.log(`Server is running on http://localhost:${port}`);
 });
