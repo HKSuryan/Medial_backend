@@ -3,26 +3,25 @@ const puppeteer = require('puppeteer');
 const path = require('path');
 const cors = require('cors');
 const multer = require('multer');
-const fs = require('fs');
+const { Readable } = require('stream');
 
 const app = express();
 const port = process.env.PORT || 3001;
 
-// Configure multer for file uploads
-const upload = multer({ dest: path.join(__dirname, 'uploads') });
+// Configure multer for file uploads with memory storage
+const storage = multer.memoryStorage();
+const upload = multer({ storage });
 
 app.use(cors());
 
 // Middlewares
-
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.json());
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // Route for generating Open Graph images
 app.post('/generate-og-image', upload.single('image'), async (req, res) => {
   const { title, content } = req.body;
-  const imageUrl = req.file ? `${req.protocol}://${req.get('host')}/uploads/${path.basename(req.file.path)}` : null;
+  const imageBuffer = req.file ? req.file.buffer : null;
 
   try {
     const browser = await puppeteer.launch();
@@ -136,7 +135,7 @@ app.post('/generate-og-image', upload.single('image'), async (req, res) => {
       <div class="description">${content}</div>
     </div>
     <div class="image-side">
-      ${imageUrl ? `<img src="${imageUrl}" class="image" alt="Image"/>` : ''}
+      ${imageBuffer ? `<img src="data:image/jpeg;base64,${imageBuffer.toString('base64')}" class="image" alt="Image"/>` : ''}
     </div>
     <div class="background-shapes">
       <div class="background-shape shape-1"></div>
