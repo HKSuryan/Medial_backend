@@ -11,9 +11,10 @@ const port = process.env.PORT || 3001;
 // Configure multer for file uploads
 const upload = multer({ dest: path.join(__dirname, 'uploads') });
 const corsOptions = {
-  origin: "http://127.0.0.1:3000",
+  origin: 'http://localhost:3000', 
+  methods: ['GET', 'POST'], 
+  allowedHeaders: ['Content-Type'], 
 };
-
 app.use(cors(corsOptions));
 
 // Middlewares
