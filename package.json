@@ -1,16 +1,18 @@
+
 {
-  "name": "medial-backend",
+  "name": "og-image-generator",
   "version": "1.0.0",
-  "main": "generate-og-image.js",
+  "description": "A serverless function to generate Open Graph images using Puppeteer.",
+  "main": "api/generate-og-image.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node api/server.js"
   },
   "dependencies": {
-    "express": "^4.17.1",
-    "puppeteer": "^10.0.0",
     "cors": "^2.8.5",
-    "multer": "^1.4.2",
-    "formidable": "^2.0.1"
+    "express": "^4.17.1",
+    "formidable": "^2.0.1",
+    "multer": "^1.4.3",
+    "puppeteer": "^19.0.0"
   },
   "devDependencies": {
     "@vercel/node": "^1.12.0"
@@ -19,6 +21,6 @@
     "node": ">=14.0.0"
   },
   "author": "HKSuryan",
-  "license": "ISC",
-  "description": ""
+  "license": "ISC"
 }
+

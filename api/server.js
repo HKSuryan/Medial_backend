@@ -4,29 +4,25 @@ const path = require('path');
 const cors = require('cors');
 const multer = require('multer');
 const fs = require('fs');
-const { IncomingForm } = require('formidable');
 
 const app = express();
+const port = process.env.PORT || 3001;
 
+// Configure multer for file uploads
+const upload = multer({ dest: path.join(__dirname, 'uploads') });
+
+// Middlewares
 app.use(cors());
-app.use(express.static(path.join(__dirname, '../public')));
+app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.json());
-app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
-app.post('/api/generate-og-image', (req, res) => {
-  const form = new IncomingForm();
-  form.uploadDir = path.join(__dirname, '../uploads');
-  form.keepExtensions = true;
+// Route for generating Open Graph images
+app.post('/generate-og-image', upload.single('image'), async (req, res) => {
+  const { title, content } = req.body;
+  const imageUrl = req.file ? `${req.protocol}://${req.get('host')}/uploads/${path.basename(req.file.path)}` : null;
 
-  form.parse(req, async (err, fields, files) => {
-    if (err) {
-      res.status(500).send('Error parsing form data');
-      return;
-    }
-
-    const { title, content } = fields;
-    const imageUrl = files.image ? `http://medial-backend.vercel.app/uploads/${files.image.newFilename}` : null;
-
+  try {
     const browser = await puppeteer.launch();
     const page = await browser.newPage();
     await page.setViewport({ width: 1200, height: 630 });
@@ -154,11 +150,14 @@ app.post('/api/generate-og-image', (req, res) => {
     await browser.close();
 
     res.setHeader('Content-Type', 'image/jpeg');
-    res.setHeader('Access-Control-Allow-Origin', '*');
-    res.setHeader('Access-Control-Allow-Methods', 'GET,POST,OPTIONS,PUT,DELETE');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
     res.send(buffer);
-  });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Error generating image' });
+  }
 });
 
-module.exports = app;
+// Start server
+app.listen(port, () => {
+  console.log(`Server is running on http://localhost:${port}`);
+});
