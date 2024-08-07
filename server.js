@@ -21,7 +21,7 @@ app.post('/generate-og-image', upload.single('image'), async (req, res) => {
   try {
     const browser = await puppeteer.launch({
       args: ['--no-sandbox', '--disable-setuid-sandbox'],
-      headless: 'new' // Ensure compatibility with the latest Puppeteer version
+      executablePath: process.env.CHROMIUM_PATH || undefined, // Ensure this path is set if deploying to an environment where Puppeteer can't download Chromium
     });
 
     const page = await browser.newPage();
