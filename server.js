@@ -1,8 +1,7 @@
 const express = require('express');
-const puppeteer = require('puppeteer-core');
-const cors = require('cors');
+const puppeteer = require('puppeteer');
 const multer = require('multer');
-const chromium = require('@sparticuz/chromium');
+const cors = require('cors');
 
 const app = express();
 const port = process.env.PORT || 3001;
@@ -20,20 +19,13 @@ app.post('/generate-og-image', upload.single('image'), async (req, res) => {
   const imageBuffer = req.file ? req.file.buffer : null;
 
   try {
-    const browser = await puppeteer.launch({
-      args: chromium.args,
-      executablePath: await chromium.executablePath(),
-      headless: true,
-    });
-
+    const browser = await puppeteer.launch({ headless: true });
     const page = await browser.newPage();
     await page.setViewport({ width: 1200, height: 630 });
 
-    // Convert the image buffer to a Base64 string
-    const imageBase64 = imageBuffer ? imageBuffer.toString('base64') : '';
+    const imageData = imageBuffer ? `data:image/jpeg;base64,${imageBuffer.toString('base64')}` : '';
 
-    // Construct the HTML content
-    const htmlContent = `
+    await page.setContent(`
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -140,7 +132,7 @@ app.post('/generate-og-image', upload.single('image'), async (req, res) => {
       <div class="description">${content}</div>
     </div>
     <div class="image-side">
-      ${imageBuffer ? `<img src="data:image/jpeg;base64,${imageBase64}" class="image" alt="Image"/>` : 'No image available'}
+      ${imageData ? `<img src="${imageData}" class="image" alt="Image"/>` : ''}
     </div>
     <div class="background-shapes">
       <div class="background-shape shape-1"></div>
@@ -149,26 +141,22 @@ app.post('/generate-og-image', upload.single('image'), async (req, res) => {
   </div>
 </body>
 </html>
-    `;
+       `);
+       const buffer = await page.screenshot({ type: 'jpeg' });
 
-    await page.setContent(htmlContent);
+       await browser.close();
+    
+       res.setHeader('Content-Type', 'image/jpeg');
+       res.setHeader('Access-Control-Allow-Origin', '*');
+       res.setHeader('Access-Control-Allow-Methods', 'GET,POST,OPTIONS');
+       res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+       res.send(buffer);
+     } catch (error) {
+       console.error(error);
+       res.status(500).json({ error: 'Error generating image' });
+     }
+    });    
 
-    const buffer = await page.screenshot({ type: 'jpeg' });
-
-    await browser.close();
-
-    res.setHeader('Content-Type', 'image/jpeg');
-    res.setHeader('Access-Control-Allow-Origin', '*');
-    res.setHeader('Access-Control-Allow-Methods', 'GET,POST,OPTIONS');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
-    res.send(buffer);
-  } catch (error) {
-    console.error('Error generating image:', error);
-    res.status(500).json({ error: 'Error generating image' });
-  }
-});
-
-// Start server
-app.listen(port, () => {
-  console.log(`Server is running on http://localhost:${port}`);
-});
+    app.listen(port, () => {
+      console.log(`Server is running on http://localhost:${port}`);
+      });
