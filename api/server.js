@@ -150,6 +150,9 @@ app.post('/generate-og-image', upload.single('image'), async (req, res) => {
     await browser.close();
 
     res.setHeader('Content-Type', 'image/jpeg');
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'GET,POST,OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
     res.send(buffer);
   } catch (error) {
     console.error(error);
